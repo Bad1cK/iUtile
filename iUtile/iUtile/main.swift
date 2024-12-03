@@ -1,4 +1,4 @@
-//git bogdan
+
 import Foundation
 import IOKit
 import IOKit.ps
@@ -74,6 +74,8 @@ if arguments.count > 1 {
         getCPUUsage()
     case "memory-usage":
         getMemoryUsage()
+    case "battery-status":
+            getBatteryStatus()
     default:
         print("-- ERORR: Unknown command")
     }
