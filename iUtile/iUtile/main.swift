@@ -3,16 +3,14 @@ import Foundation
 import IOKit
 import IOKit.ps
 
-let greenText = "\u{001B}[0;32m" // Зеленый цвет
-let redText = "\u{001B}[0;31m" // Красный цвет
-let resetText = "\u{001B}[0m"  // Сброс цвета
+let greenText = "\u{001B}[0;32m"
+let redText = "\u{001B}[0;31m"
+let resetText = "\u{001B}[0m"
 
-// Определения для корректной работы с host_statistics
 let HOST_CPU_LOAD_INFO = host_flavor_t(3)
 let HOST_CPU_LOAD_INFO_COUNT = MemoryLayout<host_cpu_load_info_data_t>.size / MemoryLayout<integer_t>.size
 
-// Функция для получения данных о загрузке процессора
-func getCPUUsage() {
+func getCPUUsageU() {
     var size = mach_msg_type_number_t(HOST_CPU_LOAD_INFO_COUNT)
     var cpuLoad = host_cpu_load_info_data_t()
 
@@ -39,7 +37,7 @@ func getCPUUsage() {
     }
 }
 
-func getMemoryUsage() { // Память
+func getMemoryUsage() {
     var vmStats = vm_statistics64()
     var size = mach_msg_type_number_t(MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size)
 
@@ -64,18 +62,25 @@ func getMemoryUsage() { // Память
     }
 }
 
-
-// Основная логика программы
 let arguments = CommandLine.arguments
 
 if arguments.count > 1 {
     switch arguments[1] {
     case "cpu-usage":
-        getCPUUsage()
+        getCPUUsageU()
     case "memory-usage":
         getMemoryUsage()
     case "battery-status":
             getBatteryStatus()
+    case "enable-powersave":
+        enablePowerSavingMode()
+    case "disable-powersave":
+        disablePowerSavingMode()
+    case "battery-plus":
+        readBatteryInfoManually()
+    case "list-process":
+        getTopCPUProcessesWithImpact()
+   
     default:
         print("-- ERORR: Unknown command")
     }

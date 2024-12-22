@@ -7,6 +7,8 @@
 import Foundation
 import IOKit
 import IOKit.ps
+import Darwin
+
 
 public func getBatteryStatus() {
     let greenText = "\u{001B}[0;32m" // Зеленый цвет
@@ -48,3 +50,77 @@ public func getBatteryStatus() {
     
     print("\(redText)No battery information available\(resetText)")
 }
+
+func enablePowerSavingMode() {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+    process.arguments = ["sudo", "pmset", "lowpowermode", "1"]
+
+    do {
+        try process.run()
+        process.waitUntilExit()
+
+        if process.terminationStatus == 0 {
+            print("powersafe enable")
+        } else {
+            print("error")
+        }
+    } catch {
+        print("error: \(error.localizedDescription)")
+    }
+}
+
+func disablePowerSavingMode() {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+    process.arguments = ["sudo", "pmset", "lowpowermode", "0"]
+
+    do {
+        try process.run()
+        process.waitUntilExit()
+
+        if process.terminationStatus == 0 {
+            print("powersafe diseble")
+        } else {
+            print("error.")
+        }
+    } catch {
+        print("error: \(error.localizedDescription)")
+    }
+}
+
+
+func readBatteryInfoManually() {
+    
+    let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSmartBattery"))
+    
+    if service == 0 {
+        print("can not find service AppleSmartBattery")
+        return
+    }
+    
+   
+    var properties: Unmanaged<CFMutableDictionary>?
+    let result = IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0)
+    
+    if result == KERN_SUCCESS, let props = properties?.takeRetainedValue() as? [String: Any] {
+        
+        if let currentCapacity = props["CurrentCapacity"] as? Int,
+           let maxCapacity = props["MaxCapacity"] as? Int,
+           let isCharging = props["IsCharging"] as? Bool {
+            
+            let chargePercentage = (Double(currentCapacity) / Double(maxCapacity)) * 100
+            print("Capacity: \(currentCapacity) mAh")
+            print("Max cap: \(maxCapacity) mAh")
+            print("Charge: \(chargePercentage)%")
+            print("status: \(isCharging ? "charging" : "not charging")")
+        } else {
+            print("can not get battery properties")
+        }
+    } else {
+        print("Error")
+    }
+    
+    IOObjectRelease(service) 
+}
+
